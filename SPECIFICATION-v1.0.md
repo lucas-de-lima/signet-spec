@@ -41,6 +41,7 @@ O `SignetPayload` é a mensagem Protocol Buffers que contém o conjunto de claim
 - **sid (Session ID):** Um array de bytes contendo um identificador único para o token. Este campo é **REQUERIDO** para o perfil STATEFUL e **DEVE** estar vazio para o perfil STATELESS. O formato recomendado é um ULID ou UUIDv7 de 16 bytes.
 - **custom_claims:** Um mapa de string para string para claims customizados, permitindo a extensão do payload com contexto específico da aplicação.
 - **roles:** Uma lista de string para representar papéis ou escopos associados ao sujeito.
+- **kid (Key ID):** Uma string opcional que identifica a chave usada para assinar o token. O campo `kid` permite que o validador selecione a chave pública correta para verificação, especialmente em cenários de rotação ou múltiplas chaves. Se ausente ou vazio, o validador DEVE utilizar a chave padrão configurada para o emissor.
 
 ---
 
@@ -143,7 +144,15 @@ Uma especificação define as regras, mas uma implementação segura requer a co
 
 ### 11.1. Gestão de Chaves Criptográficas
 
-A segurança de um `SignetToken` é absolutamente dependente da segurança da chave privada do Emissor. A especificação Signet não prescreve um método de gestão de chaves, mas exige que os implementadores tratem este como o aspecto mais crítico da sua infraestrutura de segurança.
+A segurança de um `SignetToken` depende da correta gestão das chaves de assinatura. A partir da v1.0, a especificação RECOMENDA fortemente o uso do padrão **KeyResolver** para validação de tokens em produção.
+
+- **KeyResolver:** Um KeyResolver é uma função (ou interface) que, dado um `kid` (Key ID), retorna a chave pública correspondente para validação da assinatura. A API de validação DEVE aceitar um KeyResolver como argumento, e NÃO uma chave estática. Isso permite rotação transparente de chaves e suporte a múltiplos emissores.
+
+#### Implementando um KeyResolver Seguro
+
+- **Cache com TTL:** O KeyResolver DEVE implementar um cache com TTL (Time-To-Live) para as chaves públicas, minimizando consultas externas e mitigando ataques de negação de serviço (DoS) por requisições de chaves não existentes.
+- **Retrocompatibilidade (`kid` vazio):** Se o campo `kid` estiver ausente ou vazio, o KeyResolver DEVE retornar a chave padrão configurada para o emissor, garantindo compatibilidade com tokens antigos ou ambientes de chave única.
+- **Erro formal para `kid` desconhecido:** Se o `kid` informado não for encontrado, o KeyResolver DEVE retornar um erro formal, como `ErrUnknownKeyID`, e a validação do token DEVE falhar explicitamente.
 
 - **Proteção da Chave Privada:** A chave privada do Emissor **NUNCA DEVE** ser partilhada ou exposta. **RECOMENDA-SE** o uso de um Hardware Security Module (HSM), como o Cloud HSM da GCP ou o AWS KMS, para gerar, armazenar e usar a chave sem que esta alguma vez saia do hardware seguro.
 - **Distribuição da Chave Pública:** A distribuição segura da chave pública do Emissor para os Validadores é fundamental. Soluções como um endpoint de metadados seguro (semelhante a um JWKS endpoint), ou mecanismos de descoberta de confiança em uma service mesh (ex: SPIFFE/SPIRE), são **RECOMENDADOS**.
