@@ -39,10 +39,19 @@ Este repositório é a fonte canônica da verdade para a especificação do Sign
 
 A implementação oficial e validada da especificação v1.0 está disponível em:
 
-- [signet-go (GitHub)](https://github.com/signet/signet-go)
+- [signet-go (GitHub)](https://github.com/lucas-de-lima/signet-go)
 
 O repositório signet-go é mantido pela equipe principal do projeto e serve como referência para conformidade e interoperabilidade.
 
 ## Contribuição
 
 Detalhes sobre como contribuir para a especificação serão adicionados em breve.
+
+## Contato
+
+- **Autor**: Lucas de Lima
+- **Email**: dev.lucasdelima@gmail.com
+- **LinkedIn**: [Lucas De Lima](https://www.linkedin.com/in/dev-lucasdelima/)
+- **GitHub**: [@lucas-de-lima](https://github.com/lucas-de-lima)
+
+Para questões sobre a especificação, bugs ou melhorias, por favor abra uma [Issue](../../issues) no GitHub.
